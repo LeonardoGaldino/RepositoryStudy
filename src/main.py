@@ -1,50 +1,34 @@
-from sys import argv
-import requests
-import json
-from functools import reduce
-from typing import Any, Dict
+from sys import argv, stderr, exit
+from os import getenv
 
 from tasks.RepositoryAnalysis import RepositoryAnalysis
 
-API_URL = 'https://api.github.com'
-COMMIT_URL = API_URL + '/repos/{}/{}/git/trees/{}'
+def validate_configs():
+	if len(argv) != 3:
+		print('You should provide exactly 2 command-line arguments: repository owner and repository name.', file=stderr)
+		exit(1)
+		
+	repo_owner = argv[1]
+	repo_name = argv[2]
+	username = getenv('GITHUB_USERNAME')
+	password = getenv('GITHUB_PASS')
+	num_threads = int(getenv('NUM_THREADS'))
+	max_prs = int(getenv('MAX_PRS'))
 
-JSON_TYPE = Dict[str, Any]
-'''
-	Use pagination:
-		1) per_page specifies size of a page to retrieve
-		2) page specify the page number being fetched
-		3) Link header gives information about the next page and the last
-'''
-def getURI(repo_owner: str, repo: str, commit_sha: str) -> str:
-	return COMMIT_URL.format(repo_owner, repo, commit_sha) + '?recursive=1500'
+	if(username is None):
+		print('GITHUB_USERNAME environment variable not set. Set it to increase Github API request limit', file=stderr)
+		exit(0)
+	if(password is None):
+		print('GITHUB_PASS environment variable not set. Set it to increase Github API request limit', file=stderr)
+		exit(0)
 
-def fetchData(repo_owner: str, repo: str, commit_sha: str) -> str:
-	req = requests.get(getURI(repo_owner, repo, commit_sha))
-	return req.content.decode('utf-8')
-
-def computeCommitSize(tree: JSON_TYPE) -> float:
-	return reduce(lambda acumul, obj: acumul + obj.get('size', 0), tree['tree'], 0)
-
-def computeCommitDiff(tree1: JSON_TYPE, tree2: JSON_TYPE) -> float:
-	return abs(computeCommitSize(tree1) -  computeCommitSize(tree2))
-
-def fetchAndComputeCommitsDiff(repo_owner: str, repo: str, c1_sha: str, c2_sha: str) -> float:
-	c1_raw = fetchData(repo_owner, repo, c1_sha)
-	c2_raw = fetchData(repo_owner, repo, c2_sha)
-
-	c1_content = json.loads(c1_raw)
-	c2_content = json.loads(c2_raw)
-
-	return computeCommitDiff(c1_content, c2_content)
-
+	return repo_owner, repo_name, username, password, num_threads, max_prs
 
 def main():
-	if len(argv) != 5:
-		print('Expected four inputs: Repository owner, repository name, commit1 and commit2 SHA-1.')
-		return
-	RepositoryAnalysis(argv[1], argv[2]).run_analysis()
-	print(fetchAndComputeCommitsDiff(argv[1], argv[2], argv[3], argv[4]))
+	repo_owner, repo_name, username, password, num_threads, max_prs = validate_configs()
+	
+	# Start script
+	RepositoryAnalysis(repo_owner, repo_name, num_threads, max_prs, (username, password)).run_analysis()
 
 if __name__ == '__main__':
 	main()
