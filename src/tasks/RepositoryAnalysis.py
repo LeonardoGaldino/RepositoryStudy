@@ -62,6 +62,14 @@ class RepositoryAnalysis(AnalysisBase):
                 continue
 
             pulls = json.loads(res.content)
+            try:
+                message = pulls.get('message', None)
+                if message is not None and 'API rate limit exceeded' in message:
+                    time.sleep(60)
+                    return self.list_pull_requests()
+            except AttributeError:
+                pass
+
             yield map(lambda pull: PullRequestAnalysis(self.repo_owner, self.repo_name, self.repo_data, pull['number'], self.auth), pulls)
 
             pagination_info = res.headers.get('Link', None)

@@ -5,4 +5,4 @@ export GITHUB_PASS=''
 # Good idea might be set to the number of processors
 export NUM_THREADS='8'
 
-export MAX_PRS='250'
+export MAX_PRS='1570'

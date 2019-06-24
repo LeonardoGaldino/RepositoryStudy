@@ -35,6 +35,14 @@ class CommitAnalysis(AnalysisBase):
             return self.compute_commit_tree_blob_size()
 
         tree = json.loads(res.content)
+        try:
+            message = tree.get('message', None)
+            if message is not None and 'API rate limit exceeded' in message:
+                time.sleep(60)
+                return self.compute_commit_tree_blob_size()
+        except AttributeError:
+            pass
+
         isTruncated = tree.get('truncated', None)
         if isTruncated:
             print('Commit {} tree payload truncated'.format(self.commit_sha), file=stdout)

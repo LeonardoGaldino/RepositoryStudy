@@ -71,6 +71,14 @@ class PullRequestAnalysis(AnalysisBase):
 
             commits = json.loads(res.content)
             try:
+                message = commits.get('message', None)
+                if message is not None and 'API rate limit exceeded' in message:
+                    time.sleep(60)
+                    return self.list_commits()
+            except AttributeError:
+                pass
+
+            try:
                 yield map(lambda commit: CommitAnalysis(self.repo_owner, self.repo_name, commit['sha'], 
                     commit['commit']['committer']['date'], self.auth), commits)
             except KeyError as e:
@@ -93,6 +101,11 @@ class PullRequestAnalysis(AnalysisBase):
             return self.get_pull_parent_commit()
 
         pull = json.loads(res.content)
+        message = pull.get('message', None)
+        if message is not None and 'API rate limit exceeded' in message:
+            time.sleep(60)
+            return self.get_pull_parent_commit()
+
         if pull.get('base', None) is None:
             print('Problematic pull number {}. Payload follows:'.format(self.pr_number))
             print(pull)
