@@ -48,7 +48,7 @@ class RepositoryAnalysis(AnalysisBase):
                 except StopIteration:
                     break
         print("Finished analyzing {} repository from {}...".format(self.repo_name, self.repo_owner), file=stdout)
-        with open(self.repo_owner + '_' + self.repo_name, 'w') as f:
+        with open('collected_data/' + self.repo_owner + '_' + self.repo_name, 'w') as f:
             f.write(json.dumps(self.repo_data, indent=4))
         print(repo_waste)
         
