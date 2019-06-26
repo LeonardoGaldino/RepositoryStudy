@@ -30,6 +30,10 @@ def print_field_stats(json, repo_owner, repo_name, field):
     print('For {} from {} - Merged {} average: {}'.format(repo_name, repo_owner, field, stats_merged_avg))
     print('For {} from {} - Abandoned {} average: {}'.format(repo_name, repo_owner, field, stats_abandoned_avg))
 
+def print_abandonment_percentage(json, repo_owner, repo_name):
+    perc = reduce(lambda acumul, pr_num: acumul + 1 if json[pr_num]['status'] == 'abandoned' else acumul, json.keys(), 0) / len(json.keys())
+    print('For {} from {}: {:.2f}% of PRs abandoned'.format(repo_name, repo_owner, 100*perc))
+
 def compute_statistics():
     data = {}
 
@@ -45,6 +49,7 @@ def compute_statistics():
             print_overall_stats(json, repo_owner, repo_name)
             print_field_stats(json, repo_owner, repo_name, 'num_commits')
             print_field_stats(json, repo_owner, repo_name, 'waste')
+            print_abandonment_percentage(json, repo_owner, repo_name)
 
 if __name__ == '__main__':
     compute_statistics()
