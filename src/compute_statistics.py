@@ -46,6 +46,7 @@ def compute_statistics():
             repo_owner, repo_name = data_file_name.split('_')
             content = _file.read()
             json = loads_json(content)
+            print('')
             print_overall_stats(json, repo_owner, repo_name)
             print_field_stats(json, repo_owner, repo_name, 'num_commits')
             print_field_stats(json, repo_owner, repo_name, 'waste')
