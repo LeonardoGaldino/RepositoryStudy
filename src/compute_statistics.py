@@ -34,6 +34,11 @@ def print_abandonment_percentage(json, repo_owner, repo_name):
     perc = reduce(lambda acumul, pr_num: acumul + 1 if json[pr_num]['status'] == 'abandoned' else acumul, json.keys(), 0) / len(json.keys())
     print('For {} from {}: {:.2f}% of PRs abandoned'.format(repo_name, repo_owner, 100*perc))
 
+def print_abandonment_byte_rate_per_merged(json, repo_owner, repo_name):
+    merged_waste = sum_by_status(json, 'merged')[0]
+    abandonment_waste = sum_by_status(json, 'abandoned')[0]
+    print('For {} from {}: {:.2f} abandoned bytes for each merged byte'.format(repo_name, repo_owner, (abandonment_waste/merged_waste)))
+
 def compute_statistics():
     data = {}
 
@@ -51,6 +56,7 @@ def compute_statistics():
             print_field_stats(json, repo_owner, repo_name, 'num_commits')
             print_field_stats(json, repo_owner, repo_name, 'waste')
             print_abandonment_percentage(json, repo_owner, repo_name)
+            print_abandonment_byte_rate_per_merged(json, repo_owner, repo_name)
 
 if __name__ == '__main__':
     compute_statistics()
